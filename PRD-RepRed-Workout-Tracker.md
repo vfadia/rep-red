@@ -206,10 +206,11 @@ This is the main screen the user sees when opening the app mid-workout.
 
 #### 5. Manual Adjustments & Overrides
 
-- User can manually edit today's prescribed sets before or during a workout (e.g., if they want to try more or fewer reps)
-- User can adjust the total volume for an exercise without resetting the full progression (e.g., reduce from 12 to 10 if feeling overtrained)
-- User can update the max reps, which resets the cycle with a new initial distribution
-- All manual changes should be logged/noted so the user can see what was adjusted
+- The prescribed sets are algorithm-owned and not directly editable by the user. Users log actual reps done; pass/fail is determined by actual vs. prescribed.
+- User can adjust the **total volume** for an exercise without resetting the full progression (e.g., reduce from 12 to 10 if feeling overtrained). This recalculates the current distribution.
+- User can **update the max reps**, which resets the cycle with a new initial distribution from the new max.
+- User can **manually force-advance** the prescription (override if they want to move on despite not fully completing) — requires confirmation prompt.
+- All manual changes (volume adjustments, force advances, max updates) are logged/noted in WorkoutLog so the user can see what was adjusted.
 
 #### 6. Data Persistence (Local)
 
@@ -342,8 +343,8 @@ This is the main screen the user sees when opening the app mid-workout.
 
 ### Multiple Workouts Per Day
 - Edge case: user might do a morning and evening session.
-- For simplicity in MVP, treat as one day. If they log additional sets, they append to that day's log.
-- Consider supporting multiple sessions per day in a future version.
+- Additional sets within the same day append to that day's log entry. No overwriting.
+- Progression advancement logic still runs once per day — on the first completion of the prescription for that day. Subsequent sessions that day are bonus volume only.
 
 ---
 

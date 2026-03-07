@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0a0a0a"/>
+
+  <!-- Shaft -->
+  <rect x="16" y="244" width="480" height="24" rx="4" fill="#c0152a"/>
+
+  <!-- Left outer plate -->
+  <rect x="16" y="176" width="36" height="160" rx="4" fill="#c0152a"/>
+
+  <!-- Left inner plate -->
+  <rect x="68" y="196" width="24" height="120" rx="3" fill="#c0152a"/>
+
+  <!-- Left collar (lighter) -->
+  <rect x="108" y="208" width="12" height="96" rx="2" fill="#e8192e"/>
+
+  <!-- Right collar (lighter) -->
+  <rect x="392" y="208" width="12" height="96" rx="2" fill="#e8192e"/>
+
+  <!-- Right inner plate -->
+  <rect x="420" y="196" width="24" height="120" rx="3" fill="#c0152a"/>
+
+  <!-- Right outer plate -->
+  <rect x="460" y="176" width="36" height="160" rx="4" fill="#c0152a"/>
+</svg>
