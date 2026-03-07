@@ -20,10 +20,10 @@ Priority levels: **P0** = MVP must-have, **P1** = should have, **P2** = nice to 
 
 ## Phase 2: Data Layer
 
-- [ ] **P0** Dexie.js schema setup — define `exercises`, `workoutLogs`, `routines` tables
-- [ ] **P0** TypeScript types for `Exercise`, `WorkoutLog`, `Routine`
-- [ ] **P0** DB access hooks/service layer (`useExercises`, `useWorkoutLogs`, etc.)
-- [ ] **P0** Seed/init logic — create default "Daily Calisthenics" routine on first launch
+- [x] **P0** Dexie.js schema setup — define `exercises`, `workoutLogs`, `routines` tables
+- [x] **P0** TypeScript types for `Exercise`, `WorkoutLog`, `Routine`
+- [x] **P0** DB access hooks/service layer (`useExercises`, `useWorkoutLogs`, etc.)
+- [x] **P0** Seed/init logic — create default "Daily Calisthenics" routine on first launch
 
 ---
 

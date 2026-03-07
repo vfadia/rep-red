@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 import App from './App'
+import { seedDatabase } from './db'
+
+seedDatabase().catch(console.error)
 import WorkoutScreen from './screens/WorkoutScreen'
 import MetricsScreen from './screens/MetricsScreen'
 import CalendarScreen from './screens/CalendarScreen'
