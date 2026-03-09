@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { getInitialDistribution } from '../algorithm/repRedistribution'
 import { addExercise, updateExercise } from '../hooks/useExercises'
+import { addWorkoutLog } from '../hooks/useWorkoutLogs'
 import type { Exercise } from '../db/types'
 
 type Mode = 'add' | 'edit' | 'maxReps' | 'volumeOverride'
@@ -46,16 +47,24 @@ export default function ExerciseForm({ mode, exercise, exerciseCount = 0, onClos
           currentDayPrescription: getInitialDistribution(maxRepsNum),
           isActive: true,
           sortOrder: exerciseCount,
+          maxRepsHistory: [],
         })
       } else if (mode === 'edit' && exercise) {
         await updateExercise(exercise.id, { name: name.trim(), setupNotes: setupNotes.trim() })
       } else if (mode === 'maxReps' && exercise) {
+        const today = new Date().toISOString().split('T')[0]
+        const updatedHistory = [
+          ...(exercise.maxRepsHistory ?? []),
+          { value: exercise.maxReps, date: today },
+        ]
         await updateExercise(exercise.id, {
           maxReps: maxRepsNum,
           totalVolume: maxRepsNum * 2,
           currentDayPrescription: getInitialDistribution(maxRepsNum),
+          maxRepsHistory: updatedHistory,
         })
       } else if (mode === 'volumeOverride' && exercise) {
+        const today = new Date().toISOString().split('T')[0]
         const base = Math.floor(volumeNum / 5)
         const rem = volumeNum % 5
         const newPrescription = Array(5).fill(base) as number[]
@@ -63,6 +72,17 @@ export default function ExerciseForm({ mode, exercise, exerciseCount = 0, onClos
         await updateExercise(exercise.id, {
           totalVolume: volumeNum,
           currentDayPrescription: newPrescription,
+        })
+        await addWorkoutLog({
+          date: today,
+          exerciseId: exercise.id,
+          prescribedSets: exercise.currentDayPrescription,
+          actualSets: [0, 0, 0, 0, 0],
+          completed: false,
+          attemptNumber: 0,
+          notes: `Volume override: ${volumeNum} reps`,
+          isOverride: true,
+          overrideType: 'volume_override',
         })
       }
       onClose()

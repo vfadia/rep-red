@@ -13,4 +13,14 @@ db.version(1).stores({
   routines:    'id, isDefault',
 })
 
+db.version(2).stores({
+  exercises:   'id, isActive, sortOrder',
+  workoutLogs: 'id, date, exerciseId, [date+exerciseId]',
+  routines:    'id, isDefault',
+}).upgrade(tx =>
+  tx.table('exercises').toCollection().modify((ex: Record<string, unknown>) => {
+    if (!ex.maxRepsHistory) ex.maxRepsHistory = []
+  })
+)
+
 export default db

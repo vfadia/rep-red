@@ -1,6 +1,6 @@
 # REP-RED — Build TODO
 
-Priority levels: **P0** = MVP must-have, **P1** = should have, **P2** = nice to have
+Priority levels: **P0** = MVP must-have, **P1** = should have, **P2** = nice to have, **P3** = extra credit
 
 ---
 
@@ -68,7 +68,7 @@ Priority levels: **P0** = MVP must-have, **P1** = should have, **P2** = nice to 
 - [x] **P0** Tap-to-adjust — allow editing actual reps if different from prescribed
 - [x] **P0** "Complete All as Prescribed" shortcut button per exercise
 - [x] **P0** Per-exercise completion status indicator (tab shows ✓ when logged)
-- [ ] **P0** Overall workout completion summary bar
+- [x] **P0** Overall workout completion summary bar
 - [x] **P0** Attempt counter display — "Attempt 2" if previous day not completed
 - [x] **P0** Setup notes accessible inline (collapsible) per exercise
 
@@ -81,15 +81,15 @@ Priority levels: **P0** = MVP must-have, **P1** = should have, **P2** = nice to 
 - [x] **P0** If not completed → keep same prescription, increment attempt counter
 - [x] **P0** Cycle completion detection — prompt user to re-test max when `isComplete()` is true
 - [x] **P0** Manual advance override — "Force Advance" with confirmation dialog
-- [ ] **P0** Log all changes (manual overrides noted in WorkoutLog)
+- [x] **P0** Log all changes (manual overrides noted in WorkoutLog)
 
 ---
 
 ## Phase 8: Workout Logging & Persistence
 
 - [x] **P0** Save workout log entry on workout completion (date, exerciseId, prescribedSets, actualSets, completed, attemptNumber, notes)
-- [ ] **P0** Backfill support — ability to log for a past date
-- [ ] **P0** Optional notes field per exercise per session
+- [x] **P0** Backfill support — ability to log for a past date (date picker with ←/→ arrows)
+- [x] **P0** Optional notes field per exercise per session
 - [x] **P0** Multiple workouts per day — append to same day's log, progression advances on first completion only
 
 ---
@@ -99,33 +99,36 @@ Priority levels: **P0** = MVP must-have, **P1** = should have, **P2** = nice to 
 - [x] **P0** Adjust total volume without resetting cycle (volume override) — recalculates current distribution
 - [x] **P0** Update max reps → reset cycle with new initial distribution
 - [x] **P0** Force-advance override — skip failed prescription with confirmation prompt
-- [ ] **P0** All manual changes (volume adjust, force advance, max update) logged with flag in WorkoutLog
+- [x] **P0** All manual changes (volume adjust, force advance, max update) logged with flag in WorkoutLog
 - ~~Edit today's prescribed sets~~ — removed; prescription is algorithm-owned, users only log actuals
 
 ---
 
 ## Phase 10: Metrics Dashboard (P1)
 
-- [ ] **P1** Exercise selector (dropdown/tabs)
-- [ ] **P1** Rolling 7-day average total reps (big number display)
-- [ ] **P1** Rolling 28-day average total reps (big number display)
-- [ ] **P1** Current cycle day + progress toward completion
-- [ ] **P1** Max reps history (when updated, what it was)
-- [ ] **P1** Line chart — daily total volume per exercise over time
-- [ ] **P1** Bar/visual chart — set distribution evolution across current cycle
+- [x] **P1** Exercise selector (dropdown/tabs)
+- [x] **P1** Rolling 7-day average total reps (big number display)
+- [x] **P1** Rolling 28-day average total reps (big number display)
+- [x] **P1** Current cycle day + progress toward completion
+- [x] **P1** Max reps history (when updated, what it was)
+- [x] **P1** Line chart — daily total volume per exercise over time
+- [x] **P1** Bar/visual chart — current day's 5-set distribution
 
 ---
 
 ## Phase 11: Calendar View (P1)
 
-- [ ] **P1** Monthly calendar component
-- [ ] **P1** Color coding per day — green (all complete) / yellow (partial) / empty (none)
-- [ ] **P1** Tap day → show that day's log summary
-- [ ] **P1** Streak counter — consecutive days with at least one workout
+- [x] **P1** Monthly calendar component
+- [x] **P1** Color coding per day — green (all complete) / yellow (partial) / empty (none)
+- [x] **P1** Tap day → show that day's log summary
+- [x] **P1** Streak counter — consecutive days with at least one workout
 
 ---
 
-## Phase 12: Routine Management (P1)
+## Phase 12: Routine Management (P1) — DEFERRED
+
+Active/inactive toggle + sort order in Settings is sufficient for MVP.
+Full routine management deferred to future iteration.
 
 - [ ] **P1** Create named routines (ordered exercise lists)
 - [ ] **P1** Set default routine (auto-loads each day)
@@ -142,11 +145,11 @@ Priority levels: **P0** = MVP must-have, **P1** = should have, **P2** = nice to 
 
 ---
 
-## Phase 14: Onboarding (P2)
+## Phase 14: Onboarding (P3)
 
-- [ ] **P2** First-launch walkthrough explaining rep redistribution method
-- [ ] **P2** Guided setup — add first exercise, enter max, see first prescription
-- [ ] **P2** Link to K Boges reference video
+- [ ] **P3** First-launch walkthrough explaining rep redistribution method
+- [ ] **P3** Guided setup — add first exercise, enter max, see first prescription
+- [ ] **P3** Link to K Boges reference video
 
 ---
 

@@ -12,15 +12,24 @@ import type { WorkoutLog } from '../db/types'
 
 type SetState = { prescribed: number; actual: number; done: boolean }
 
+function stepDate(date: string, delta: number): string {
+  const d = new Date(date + 'T12:00:00')
+  d.setDate(d.getDate() + delta)
+  return d.toISOString().split('T')[0]
+}
+
 export default function WorkoutScreen() {
   const today = useToday()
   const exercises = useActiveExercises()
-  const todayLogs = useWorkoutLogsForDate(today)
+
+  const [selectedDate, setSelectedDate] = useState(today)
+  const logsForDate = useWorkoutLogsForDate(selectedDate)
 
   const [activeIdx, setActiveIdx] = useState(0)
   const [sets, setSets] = useState<SetState[]>([])
   const [isLogging, setIsLogging] = useState(false)
   const [showNotes, setShowNotes] = useState(false)
+  const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [cycleCompleteExercise, setCycleCompleteExercise] = useState<Exercise | null>(null)
   const [showMaxRepsForm, setShowMaxRepsForm] = useState(false)
@@ -28,12 +37,12 @@ export default function WorkoutScreen() {
   const clampedIdx = Math.min(activeIdx, Math.max(0, exercises.length - 1))
   const activeExercise = exercises[clampedIdx] ?? null
 
-  const exerciseLogs = todayLogs.filter(l => l.exerciseId === activeExercise?.id)
+  const exerciseLogs = logsForDate.filter(l => l.exerciseId === activeExercise?.id)
 
-  // When switching tabs, initialize logging state
+  // When switching tabs or date, initialize logging state
   useEffect(() => {
     if (!activeExercise) return
-    const hasExistingLog = todayLogs.some(l => l.exerciseId === activeExercise.id)
+    const hasExistingLog = logsForDate.some(l => l.exerciseId === activeExercise.id)
     if (!hasExistingLog) {
       setIsLogging(true)
       setSets(activeExercise.currentDayPrescription.map(p => ({ prescribed: p, actual: p, done: false })))
@@ -41,7 +50,8 @@ export default function WorkoutScreen() {
       setIsLogging(false)
     }
     setShowNotes(false)
-  }, [activeIdx]) // eslint-disable-line react-hooks/exhaustive-deps
+    setNotes('')
+  }, [activeIdx, selectedDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleCompleteAsPrescribed() {
     setSets(prev => prev.map(s => ({ ...s, actual: s.prescribed, done: true })))
@@ -55,21 +65,22 @@ export default function WorkoutScreen() {
       const actualSets = sets.map(s => (s.done ? s.actual : 0))
       const completed = sets.every(s => s.done && s.actual >= s.prescribed)
 
-      const existingLogs = await getLogsForExerciseOnDate(activeExercise.id, today)
+      const existingLogs = await getLogsForExerciseOnDate(activeExercise.id, selectedDate)
       const attemptNumber = existingLogs.length + 1
 
       await addWorkoutLog({
-        date: today,
+        date: selectedDate,
         exerciseId: activeExercise.id,
         prescribedSets,
         actualSets,
         completed,
         attemptNumber,
-        notes: '',
+        notes,
       })
 
+      // Only advance prescription when logging for today (not backfill)
       const wasAlreadyCompleted = existingLogs.some(l => l.completed)
-      if (completed && !wasAlreadyCompleted) {
+      if (completed && !wasAlreadyCompleted && selectedDate === today) {
         const next = advanceDay(activeExercise.currentDayPrescription)
         await updateExercise(activeExercise.id, { currentDayPrescription: next })
         if (isComplete(next, activeExercise.maxReps)) {
@@ -78,6 +89,7 @@ export default function WorkoutScreen() {
       }
 
       setIsLogging(false)
+      setNotes('')
     } finally {
       setSaving(false)
     }
@@ -86,14 +98,21 @@ export default function WorkoutScreen() {
   function handleLogAgain() {
     if (!activeExercise) return
     setSets(activeExercise.currentDayPrescription.map(p => ({ prescribed: p, actual: p, done: false })))
+    setNotes('')
     setIsLogging(true)
   }
 
-  const dateHeader = new Date(today + 'T12:00:00').toLocaleDateString('en-US', {
+  const dateHeader = new Date(selectedDate + 'T12:00:00').toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
   })
+
+  // Completion summary: count exercises with at least one completed log for selected date
+  const completedCount = exercises.filter(ex =>
+    logsForDate.some(l => l.exerciseId === ex.id && l.completed && !l.isOverride)
+  ).length
+  const totalCount = exercises.length
 
   if (exercises.length === 0) {
     return (
@@ -114,23 +133,67 @@ export default function WorkoutScreen() {
   return (
     <ScreenLayout>
       <div className="flex flex-col">
-        {/* Date header */}
-        <div className="px-4 pt-4 pb-2">
-          <p
-            className="text-xs font-medium uppercase tracking-wide"
-            style={{ color: 'var(--color-text-muted)' }}
+        {/* Date picker */}
+        <div className="px-4 pt-4 pb-2 flex items-center gap-3">
+          <button
+            onClick={() => setSelectedDate(d => stepDate(d, -1))}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-lg"
+            style={{ color: 'var(--color-text-secondary)', background: 'var(--color-surface-overlay)' }}
+            aria-label="Previous day"
           >
-            Today
-          </p>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-            {dateHeader}
-          </h1>
+            ‹
+          </button>
+          <div className="flex-1">
+            <p
+              className="text-xs font-medium uppercase tracking-wide"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              {selectedDate === today ? 'Today' : 'Backfill'}
+            </p>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+              {dateHeader}
+            </h1>
+          </div>
+          <button
+            onClick={() => setSelectedDate(d => stepDate(d, 1))}
+            disabled={selectedDate >= today}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-lg"
+            style={{
+              color: selectedDate >= today ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+              background: 'var(--color-surface-overlay)',
+              opacity: selectedDate >= today ? 0.4 : 1,
+            }}
+            aria-label="Next day"
+          >
+            ›
+          </button>
         </div>
+
+        {/* Completion summary bar */}
+        {totalCount > 0 && (
+          <div className="px-4 pb-2 flex items-center gap-2">
+            <div className="flex gap-1">
+              {exercises.map(ex => {
+                const done = logsForDate.some(l => l.exerciseId === ex.id && l.completed && !l.isOverride)
+                return (
+                  <span
+                    key={ex.id}
+                    className="w-2 h-2 rounded-full"
+                    style={{ background: done ? 'var(--color-success)' : 'var(--color-border-strong)' }}
+                  />
+                )
+              })}
+            </div>
+            <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+              {completedCount} / {totalCount} done
+            </span>
+          </div>
+        )}
 
         {/* Exercise tabs */}
         <div className="px-4 pb-3 overflow-x-auto flex gap-2" style={{ scrollbarWidth: 'none' }}>
           {exercises.map((ex, idx) => {
-            const hasLog = todayLogs.some(l => l.exerciseId === ex.id)
+            const hasLog = logsForDate.some(l => l.exerciseId === ex.id && !l.isOverride)
             const isActive = clampedIdx === idx
             return (
               <button
@@ -158,9 +221,11 @@ export default function WorkoutScreen() {
                 exercise={activeExercise}
                 sets={sets}
                 setSets={setSets}
-                attemptNumber={exerciseLogs.length + 1}
+                attemptNumber={exerciseLogs.filter(l => !l.isOverride).length + 1}
                 showNotes={showNotes}
+                notes={notes}
                 onToggleNotes={() => setShowNotes(n => !n)}
+                onNotesChange={setNotes}
                 onCompleteAsPrescribed={handleCompleteAsPrescribed}
                 onSave={handleSave}
                 saving={saving}
@@ -168,7 +233,7 @@ export default function WorkoutScreen() {
             ) : (
               <CompletedView
                 exercise={activeExercise}
-                logs={exerciseLogs}
+                logs={exerciseLogs.filter(l => !l.isOverride)}
                 onLogAgain={handleLogAgain}
               />
             )}
@@ -208,7 +273,9 @@ interface LoggingViewProps {
   setSets: React.Dispatch<React.SetStateAction<SetState[]>>
   attemptNumber: number
   showNotes: boolean
+  notes: string
   onToggleNotes: () => void
+  onNotesChange: (v: string) => void
   onCompleteAsPrescribed: () => void
   onSave: () => void
   saving: boolean
@@ -220,7 +287,9 @@ function LoggingView({
   setSets,
   attemptNumber,
   showNotes,
+  notes,
   onToggleNotes,
+  onNotesChange,
   onCompleteAsPrescribed,
   onSave,
   saving,
@@ -287,6 +356,20 @@ function LoggingView({
         </button>
       )}
 
+      {/* Notes field */}
+      <textarea
+        value={notes}
+        onChange={e => onNotesChange(e.target.value)}
+        placeholder="Notes (optional)…"
+        rows={2}
+        className="rounded-lg px-3 py-2.5 text-sm outline-none resize-none"
+        style={{
+          background: 'var(--color-surface-raised)',
+          color: 'var(--color-text-primary)',
+          border: '1px solid var(--color-border-strong)',
+        }}
+      />
+
       {/* Save */}
       <button
         onClick={onSave}
@@ -341,6 +424,11 @@ function CompletedView({ exercise, logs, onLogAgain }: CompletedViewProps) {
       <p className="text-sm font-mono" style={{ color: 'var(--color-text-secondary)' }}>
         {setsDisplay}
       </p>
+      {lastLog.notes && (
+        <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+          {lastLog.notes}
+        </p>
+      )}
       <button
         onClick={onLogAgain}
         className="rounded-lg py-2.5 text-sm font-semibold"

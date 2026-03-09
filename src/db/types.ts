@@ -9,6 +9,7 @@ export interface Exercise {
   sortOrder: number
   createdAt: string
   updatedAt: string
+  maxRepsHistory: { value: number; date: string }[]
 }
 
 export interface WorkoutLog {
@@ -21,6 +22,8 @@ export interface WorkoutLog {
   attemptNumber: number
   notes: string
   createdAt: string
+  isOverride?: boolean
+  overrideType?: 'force_advance' | 'volume_override' | 'max_reps_update'
 }
 
 export interface Routine {

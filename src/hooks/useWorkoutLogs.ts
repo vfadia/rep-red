@@ -50,3 +50,14 @@ export async function getLatestLogForExercise(
     .sortBy('createdAt')
     .then(logs => logs.at(-1))
 }
+
+export function useWorkoutLogsForDateRange(startDate: string, endDate: string): WorkoutLog[] {
+  const [logs, setLogs] = useState<WorkoutLog[]>([])
+  useEffect(() => {
+    const sub = liveQuery(() =>
+      db.workoutLogs.where('date').between(startDate, endDate, true, true).toArray()
+    ).subscribe({ next: setLogs, error: console.error })
+    return () => sub.unsubscribe()
+  }, [startDate, endDate])
+  return logs
+}

@@ -3,6 +3,7 @@ import ScreenLayout from '../components/ScreenLayout'
 import ExerciseForm from '../components/ExerciseForm'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { useAllExercises, updateExercise, deleteExercise } from '../hooks/useExercises'
+import { addWorkoutLog } from '../hooks/useWorkoutLogs'
 import { advanceDay } from '../algorithm/repRedistribution'
 import type { Exercise } from '../db/types'
 
@@ -52,8 +53,20 @@ export default function SettingsScreen() {
 
   async function confirmForceAdvance() {
     if (!forceAdvanceTarget) return
+    const today = new Date().toISOString().split('T')[0]
     const next = advanceDay(forceAdvanceTarget.currentDayPrescription)
     await updateExercise(forceAdvanceTarget.id, { currentDayPrescription: next })
+    await addWorkoutLog({
+      date: today,
+      exerciseId: forceAdvanceTarget.id,
+      prescribedSets: forceAdvanceTarget.currentDayPrescription,
+      actualSets: [0, 0, 0, 0, 0],
+      completed: false,
+      attemptNumber: 0,
+      notes: 'Force advanced',
+      isOverride: true,
+      overrideType: 'force_advance',
+    })
     setForceAdvanceTarget(null)
   }
 
