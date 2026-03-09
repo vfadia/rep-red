@@ -3,6 +3,7 @@ import ScreenLayout from '../components/ScreenLayout'
 import ExerciseForm from '../components/ExerciseForm'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { useAllExercises, updateExercise, deleteExercise } from '../hooks/useExercises'
+import { advanceDay } from '../algorithm/repRedistribution'
 import type { Exercise } from '../db/types'
 
 type FormState =
@@ -10,11 +11,13 @@ type FormState =
   | { open: true; mode: 'add' }
   | { open: true; mode: 'edit'; exercise: Exercise }
   | { open: true; mode: 'maxReps'; exercise: Exercise }
+  | { open: true; mode: 'volumeOverride'; exercise: Exercise }
 
 export default function SettingsScreen() {
   const exercises = useAllExercises()
   const [form, setForm] = useState<FormState>({ open: false })
   const [deleteTarget, setDeleteTarget] = useState<Exercise | null>(null)
+  const [forceAdvanceTarget, setForceAdvanceTarget] = useState<Exercise | null>(null)
 
   // Split active/inactive but preserve sortOrder within each group
   const active = exercises.filter(e => e.isActive)
@@ -45,6 +48,13 @@ export default function SettingsScreen() {
     if (!deleteTarget) return
     await deleteExercise(deleteTarget.id)
     setDeleteTarget(null)
+  }
+
+  async function confirmForceAdvance() {
+    if (!forceAdvanceTarget) return
+    const next = advanceDay(forceAdvanceTarget.currentDayPrescription)
+    await updateExercise(forceAdvanceTarget.id, { currentDayPrescription: next })
+    setForceAdvanceTarget(null)
   }
 
   return (
@@ -79,6 +89,8 @@ export default function SettingsScreen() {
             isLast={idx === sorted.length - 1}
             onEdit={() => setForm({ open: true, mode: 'edit', exercise })}
             onMaxReps={() => setForm({ open: true, mode: 'maxReps', exercise })}
+            onVolume={() => setForm({ open: true, mode: 'volumeOverride', exercise })}
+            onForceAdvance={() => setForceAdvanceTarget(exercise)}
             onToggleActive={() => toggleActive(exercise)}
             onDelete={() => setDeleteTarget(exercise)}
             onMoveUp={() => moveUp(exercise)}
@@ -109,6 +121,13 @@ export default function SettingsScreen() {
           onClose={() => setForm({ open: false })}
         />
       )}
+      {form.open && form.mode === 'volumeOverride' && (
+        <ExerciseForm
+          mode="volumeOverride"
+          exercise={form.exercise}
+          onClose={() => setForm({ open: false })}
+        />
+      )}
 
       {/* Delete confirmation */}
       {deleteTarget && (
@@ -118,6 +137,17 @@ export default function SettingsScreen() {
           confirmLabel="Delete"
           onConfirm={confirmDelete}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {/* Force advance confirmation */}
+      {forceAdvanceTarget && (
+        <ConfirmDialog
+          title="Force Advance?"
+          message="Skip today's prescription and advance to the next day. Use this if you completed the workout but forgot to log it."
+          confirmLabel="Force ↑ Advance"
+          onConfirm={confirmForceAdvance}
+          onCancel={() => setForceAdvanceTarget(null)}
         />
       )}
     </ScreenLayout>
@@ -130,6 +160,8 @@ interface CardProps {
   isLast: boolean
   onEdit: () => void
   onMaxReps: () => void
+  onVolume: () => void
+  onForceAdvance: () => void
   onToggleActive: () => void
   onDelete: () => void
   onMoveUp: () => void
@@ -142,6 +174,8 @@ function ExerciseCard({
   isLast,
   onEdit,
   onMaxReps,
+  onVolume,
+  onForceAdvance,
   onToggleActive,
   onDelete,
   onMoveUp,
@@ -201,6 +235,8 @@ function ExerciseCard({
       <div className="flex flex-wrap gap-2">
         <ActionButton label="Edit" onClick={onEdit} />
         <ActionButton label="Max Reps" onClick={onMaxReps} />
+        <ActionButton label="Volume" onClick={onVolume} />
+        <ActionButton label="Force ↑" onClick={onForceAdvance} />
         <ActionButton
           label={exercise.isActive ? 'Deactivate' : 'Activate'}
           onClick={onToggleActive}

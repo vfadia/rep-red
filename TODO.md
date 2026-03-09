@@ -29,11 +29,11 @@ Priority levels: **P0** = MVP must-have, **P1** = should have, **P2** = nice to 
 
 ## Phase 3: Rep Redistribution Algorithm
 
-- [ ] **P0** Implement `getInitialDistribution(maxReps)` — total = max × 2, spread across 5 sets with remainder to early sets
-- [ ] **P0** Implement `advanceDay(currentSets)` — find last non-zero, subtract 1; find first drop, add 1; edge cases (all equal → set 1, 2-set edge case → set 1)
-- [ ] **P0** Implement `isComplete(sets, maxReps)` — true when set[0] >= maxReps * 2
-- [ ] **P0** Unit test algorithm against all PRD worked examples (Day 1–10 for max=5)
-- [ ] **P0** Edge case tests: odd volumes, single-set completion, 2-set redistribution
+- [x] **P0** Implement `getInitialDistribution(maxReps)` — total = max × 2, spread across 5 sets with remainder to early sets
+- [x] **P0** Implement `advanceDay(currentSets)` — find last non-zero, subtract 1; find first drop, add 1; edge cases (all equal → set 1, 2-set edge case → set 1)
+- [x] **P0** Implement `isComplete(sets, maxReps)` — true when set[0] >= maxReps * 2
+- [x] **P0** Unit test algorithm against all PRD worked examples (Day 1–10 for max=5)
+- [x] **P0** Edge case tests: odd volumes, single-set completion, 2-set redistribution
 
 ---
 
@@ -48,57 +48,57 @@ Priority levels: **P0** = MVP must-have, **P1** = should have, **P2** = nice to 
 
 ## Phase 5: Exercise Management
 
-- [ ] **P0** Exercise list screen (within Settings or dedicated manage screen)
-- [ ] **P0** Add exercise form — name, optional setup notes, max reps
-- [ ] **P0** On max reps submit — calculate initial distribution, create exercise record
-- [ ] **P0** Edit exercise — name, setup notes (no prescription reset)
-- [ ] **P0** Update max reps — resets cycle with new initial distribution, preserves history
-- [ ] **P0** Toggle exercise active/inactive
-- [ ] **P0** Delete exercise — confirmation dialog, preserve historical logs
-- [ ] **P0** Exercise sort order (manual ordering for routine)
+- [x] **P0** Exercise list screen (within Settings or dedicated manage screen)
+- [x] **P0** Add exercise form — name, optional setup notes, max reps
+- [x] **P0** On max reps submit — calculate initial distribution, create exercise record
+- [x] **P0** Edit exercise — name, setup notes (no prescription reset)
+- [x] **P0** Update max reps — resets cycle with new initial distribution, preserves history
+- [x] **P0** Toggle exercise active/inactive
+- [x] **P0** Delete exercise — confirmation dialog, preserve historical logs
+- [x] **P0** Exercise sort order (manual ordering for routine)
 
 ---
 
 ## Phase 6: Daily Workout View (Primary Screen)
 
-- [ ] **P0** Today's date header
-- [ ] **P0** Horizontal swipeable carousel / tabs — one tab per active exercise
-- [ ] **P0** Exercise card — display prescribed sets prominently (large font, glanceable)
-- [ ] **P0** Set logging — tap each set button to mark complete (shows prescribed count)
-- [ ] **P0** Tap-to-adjust — allow editing actual reps if different from prescribed
-- [ ] **P0** "Complete All as Prescribed" shortcut button per exercise
-- [ ] **P0** Per-exercise completion status indicator (not started / in progress / done)
+- [x] **P0** Today's date header
+- [x] **P0** Horizontal swipeable carousel / tabs — one tab per active exercise
+- [x] **P0** Exercise card — display prescribed sets prominently (large font, glanceable)
+- [x] **P0** Set logging — tap each set button to mark complete (shows prescribed count)
+- [x] **P0** Tap-to-adjust — allow editing actual reps if different from prescribed
+- [x] **P0** "Complete All as Prescribed" shortcut button per exercise
+- [x] **P0** Per-exercise completion status indicator (tab shows ✓ when logged)
 - [ ] **P0** Overall workout completion summary bar
-- [ ] **P0** Attempt counter display — "Attempt 2" if previous day not completed
-- [ ] **P0** Setup notes accessible inline (collapsible or tooltip) per exercise
+- [x] **P0** Attempt counter display — "Attempt 2" if previous day not completed
+- [x] **P0** Setup notes accessible inline (collapsible) per exercise
 
 ---
 
 ## Phase 7: Progression Engine Integration
 
-- [ ] **P0** On workout save — check if all sets met or exceeded prescription
-- [ ] **P0** If completed → call `advanceDay()`, update exercise's `currentDayPrescription`
-- [ ] **P0** If not completed → keep same prescription, increment attempt counter
-- [ ] **P0** Cycle completion detection — prompt user to re-test max when `isComplete()` is true
-- [ ] **P0** Manual advance override — "Force Advance" with confirmation dialog
+- [x] **P0** On workout save — check if all sets met or exceeded prescription
+- [x] **P0** If completed → call `advanceDay()`, update exercise's `currentDayPrescription`
+- [x] **P0** If not completed → keep same prescription, increment attempt counter
+- [x] **P0** Cycle completion detection — prompt user to re-test max when `isComplete()` is true
+- [x] **P0** Manual advance override — "Force Advance" with confirmation dialog
 - [ ] **P0** Log all changes (manual overrides noted in WorkoutLog)
 
 ---
 
 ## Phase 8: Workout Logging & Persistence
 
-- [ ] **P0** Save workout log entry on workout completion (date, exerciseId, prescribedSets, actualSets, completed, attemptNumber, notes)
+- [x] **P0** Save workout log entry on workout completion (date, exerciseId, prescribedSets, actualSets, completed, attemptNumber, notes)
 - [ ] **P0** Backfill support — ability to log for a past date
 - [ ] **P0** Optional notes field per exercise per session
-- [ ] **P0** Multiple workouts per day — append to same day's log (MVP: treat as one session)
+- [x] **P0** Multiple workouts per day — append to same day's log, progression advances on first completion only
 
 ---
 
 ## Phase 9: Manual Adjustments
 
-- [ ] **P0** Adjust total volume without resetting cycle (volume override) — recalculates current distribution
-- [ ] **P0** Update max reps → reset cycle with new initial distribution
-- [ ] **P0** Force-advance override — skip failed prescription with confirmation prompt
+- [x] **P0** Adjust total volume without resetting cycle (volume override) — recalculates current distribution
+- [x] **P0** Update max reps → reset cycle with new initial distribution
+- [x] **P0** Force-advance override — skip failed prescription with confirmation prompt
 - [ ] **P0** All manual changes (volume adjust, force advance, max update) logged with flag in WorkoutLog
 - ~~Edit today's prescribed sets~~ — removed; prescription is algorithm-owned, users only log actuals
 

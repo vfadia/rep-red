@@ -3,7 +3,7 @@ import { getInitialDistribution } from '../algorithm/repRedistribution'
 import { addExercise, updateExercise } from '../hooks/useExercises'
 import type { Exercise } from '../db/types'
 
-type Mode = 'add' | 'edit' | 'maxReps'
+type Mode = 'add' | 'edit' | 'maxReps' | 'volumeOverride'
 
 interface Props {
   mode: Mode
@@ -16,15 +16,20 @@ export default function ExerciseForm({ mode, exercise, exerciseCount = 0, onClos
   const [name, setName] = useState(exercise?.name ?? '')
   const [setupNotes, setSetupNotes] = useState(exercise?.setupNotes ?? '')
   const [maxReps, setMaxReps] = useState(exercise?.maxReps?.toString() ?? '')
+  const [volume, setVolume] = useState(exercise?.totalVolume?.toString() ?? '')
   const [saving, setSaving] = useState(false)
 
   const maxRepsNum = parseInt(maxReps, 10)
   const maxRepsValid = !isNaN(maxRepsNum) && maxRepsNum >= 1 && Number.isInteger(maxRepsNum)
 
+  const volumeNum = parseInt(volume, 10)
+  const volumeValid = !isNaN(volumeNum) && volumeNum >= 5 && Number.isInteger(volumeNum)
+
   const isValid = (() => {
     if (mode === 'add') return name.trim().length > 0 && maxRepsValid
     if (mode === 'edit') return name.trim().length > 0
     if (mode === 'maxReps') return maxRepsValid
+    if (mode === 'volumeOverride') return volumeValid
     return false
   })()
 
@@ -50,6 +55,15 @@ export default function ExerciseForm({ mode, exercise, exerciseCount = 0, onClos
           totalVolume: maxRepsNum * 2,
           currentDayPrescription: getInitialDistribution(maxRepsNum),
         })
+      } else if (mode === 'volumeOverride' && exercise) {
+        const base = Math.floor(volumeNum / 5)
+        const rem = volumeNum % 5
+        const newPrescription = Array(5).fill(base) as number[]
+        for (let i = 0; i < rem; i++) newPrescription[i]++
+        await updateExercise(exercise.id, {
+          totalVolume: volumeNum,
+          currentDayPrescription: newPrescription,
+        })
       }
       onClose()
     } finally {
@@ -57,7 +71,11 @@ export default function ExerciseForm({ mode, exercise, exerciseCount = 0, onClos
     }
   }
 
-  const title = mode === 'add' ? 'Add Exercise' : mode === 'edit' ? 'Edit Exercise' : 'Update Max Reps'
+  const title =
+    mode === 'add' ? 'Add Exercise'
+    : mode === 'edit' ? 'Edit Exercise'
+    : mode === 'maxReps' ? 'Update Max Reps'
+    : 'Override Volume'
 
   return (
     <div
@@ -152,6 +170,36 @@ export default function ExerciseForm({ mode, exercise, exerciseCount = 0, onClos
                 border: '1px solid var(--color-border-strong)',
               }}
               autoFocus={mode === 'maxReps'}
+            />
+          </div>
+        )}
+
+        {mode === 'volumeOverride' && exercise && (
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--color-text-muted)' }}>
+              Total Volume *
+            </label>
+            <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>
+              Current: {exercise.totalVolume} reps
+            </p>
+            <p className="text-xs mb-1" style={{ color: 'var(--color-warning)' }}>
+              Recalculates today's prescription. Does not reset your cycle.
+            </p>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={5}
+              step={1}
+              value={volume}
+              onChange={e => setVolume(e.target.value)}
+              placeholder="e.g. 12"
+              className="rounded-lg px-3 py-2.5 text-sm outline-none"
+              style={{
+                background: 'var(--color-surface-raised)',
+                color: 'var(--color-text-primary)',
+                border: '1px solid var(--color-border-strong)',
+              }}
+              autoFocus
             />
           </div>
         )}
