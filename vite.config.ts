@@ -5,6 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
 export default defineConfig({
+  base: '/rep-red/',
   plugins: [
     react(),
     tailwindcss(),
@@ -22,20 +23,20 @@ export default defineConfig({
         display: 'standalone',
         background_color: '#0a0a0a',
         theme_color: '#0a0a0a',
-        start_url: '/',
+        start_url: '/rep-red/',
         icons: [
           {
-            src: '/icons/icon-192.png',
+            src: '/rep-red/icons/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
           },
           {
-            src: '/icons/icon-512.png',
+            src: '/rep-red/icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
           },
           {
-            src: '/icons/icon-512.png',
+            src: '/rep-red/icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',

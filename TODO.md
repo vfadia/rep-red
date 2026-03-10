@@ -139,9 +139,9 @@ Full routine management deferred to future iteration.
 
 ## Phase 13: History Log (P2)
 
-- [ ] **P2** Scrollable past workout list
-- [ ] **P2** Filter by exercise or date range
-- [ ] **P2** Full session detail view (prescribed vs actual, notes, attempt)
+- [x] **P2** Scrollable past workout list
+- [x] **P2** Filter by exercise or date range
+- [x] **P2** Full session detail view (prescribed vs actual, notes, attempt)
 
 ---
 
@@ -155,7 +155,7 @@ Full routine management deferred to future iteration.
 
 ## Phase 15: Deployment
 
-- [ ] **P0** GitHub Actions workflow — build on push to main, deploy to GitHub Pages
+- [x] **P0** GitHub Actions workflow — build on push to main, deploy to GitHub Pages
 - [ ] **P0** Verify PWA installability (Lighthouse PWA audit)
 - [ ] **P0** Test IndexedDB persistence on iOS Safari across sessions
 - [ ] **P0** Test offline functionality (airplane mode)

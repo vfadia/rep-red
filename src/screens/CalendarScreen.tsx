@@ -27,6 +27,7 @@ export default function CalendarScreen() {
   const [year, setYear] = useState(todayDate.getFullYear())
   const [month, setMonth] = useState(todayDate.getMonth()) // 0-based
   const [selectedDay, setSelectedDay] = useState<string | null>(null)
+  const [filterExerciseId, setFilterExerciseId] = useState<string | null>(null)
 
   const exercises = useActiveExercises()
 
@@ -44,16 +45,28 @@ export default function CalendarScreen() {
   const monthLogs = useWorkoutLogsForDateRange(firstOfMonth, lastOfMonth)
   const streakLogs = useWorkoutLogsForDateRange(ninetyDaysAgo, today)
 
-  // Map date -> logs (real only, no overrides)
+  // Map date -> non-override logs (respects exercise filter) — used for calendar grid colors
   const logsByDate = useMemo(() => {
     const map: Record<string, WorkoutLog[]> = {}
     for (const log of monthLogs) {
       if (log.isOverride) continue
+      if (filterExerciseId && log.exerciseId !== filterExerciseId) continue
       if (!map[log.date]) map[log.date] = []
       map[log.date].push(log)
     }
     return map
-  }, [monthLogs])
+  }, [monthLogs, filterExerciseId])
+
+  // Map date -> all logs including overrides (respects exercise filter) — used for DayDetail
+  const allLogsByDate = useMemo(() => {
+    const map: Record<string, WorkoutLog[]> = {}
+    for (const log of monthLogs) {
+      if (filterExerciseId && log.exerciseId !== filterExerciseId) continue
+      if (!map[log.date]) map[log.date] = []
+      map[log.date].push(log)
+    }
+    return map
+  }, [monthLogs, filterExerciseId])
 
   // Day status: 'done' | 'partial' | 'none'
   function dayStatus(dateStr: string): 'done' | 'partial' | 'none' {
@@ -153,6 +166,35 @@ export default function CalendarScreen() {
           )}
         </div>
 
+        {/* Exercise filter pills */}
+        {exercises.length > 0 && (
+          <div className="px-4 pb-3 flex flex-wrap gap-2">
+            <button
+              onClick={() => setFilterExerciseId(null)}
+              className="px-3 py-1 rounded-full text-xs font-medium"
+              style={{
+                background: filterExerciseId === null ? 'var(--color-accent)' : 'var(--color-surface-overlay)',
+                color: filterExerciseId === null ? '#000' : 'var(--color-text-secondary)',
+              }}
+            >
+              All
+            </button>
+            {exercises.map(ex => (
+              <button
+                key={ex.id}
+                onClick={() => setFilterExerciseId(filterExerciseId === ex.id ? null : ex.id)}
+                className="px-3 py-1 rounded-full text-xs font-medium"
+                style={{
+                  background: filterExerciseId === ex.id ? 'var(--color-accent)' : 'var(--color-surface-overlay)',
+                  color: filterExerciseId === ex.id ? '#000' : 'var(--color-text-secondary)',
+                }}
+              >
+                {ex.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Weekday headers */}
         <div className="px-4 grid grid-cols-7 gap-1 mb-1">
           {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
@@ -220,7 +262,7 @@ export default function CalendarScreen() {
         {selectedDay && (
           <DayDetail
             date={selectedDay}
-            logs={logsByDate[selectedDay] ?? []}
+            logs={allLogsByDate[selectedDay] ?? []}
             exercises={exercises}
           />
         )}
@@ -252,57 +294,115 @@ function DayDetail({
     day: 'numeric',
   })
 
-  // Group logs by exerciseId, pick best attempt (prefer completed)
-  const byExercise: Record<string, WorkoutLog[]> = {}
-  for (const log of logs) {
-    if (!byExercise[log.exerciseId]) byExercise[log.exerciseId] = []
-    byExercise[log.exerciseId].push(log)
-  }
+  const exerciseMap = Object.fromEntries(exercises.map(ex => [ex.id, ex.name]))
 
-  const loggedExerciseIds = new Set(Object.keys(byExercise))
-  const relevantExercises = exercises.filter(ex => loggedExerciseIds.has(ex.id))
-
-  if (relevantExercises.length === 0) {
-    return (
-      <div
-        className="mx-4 mt-4 rounded-xl p-4"
-        style={{ background: 'var(--color-surface-raised)', border: '1px solid var(--color-border)' }}
-      >
-        <p className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>
-          {formatted}
-        </p>
-        <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>No workouts logged.</p>
-      </div>
-    )
-  }
+  // Sort logs: non-overrides first, then by attemptNumber
+  const sorted = [...logs].sort((a, b) => {
+    if (!!a.isOverride !== !!b.isOverride) return a.isOverride ? 1 : -1
+    return a.attemptNumber - b.attemptNumber
+  })
 
   return (
     <div
-      className="mx-4 mt-4 rounded-xl p-4 flex flex-col gap-2"
+      className="mx-4 mt-4 rounded-xl p-4 flex flex-col gap-3"
       style={{ background: 'var(--color-surface-raised)', border: '1px solid var(--color-border)' }}
     >
       <p className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
         {formatted}
       </p>
-      <div className="flex flex-wrap gap-2">
-        {relevantExercises.map(ex => {
-          const exLogs = byExercise[ex.id] ?? []
-          const completed = exLogs.some(l => l.completed)
-          return (
+
+      {sorted.length === 0 ? (
+        <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>No workouts on this day.</p>
+      ) : (
+        sorted.map(log => (
+          <LogCard key={log.id} log={log} exerciseName={exerciseMap[log.exerciseId] ?? log.exerciseId} />
+        ))
+      )}
+    </div>
+  )
+}
+
+function LogCard({ log, exerciseName }: { log: WorkoutLog; exerciseName: string }) {
+  const isOverride = !!log.isOverride
+
+  return (
+    <div
+      className="rounded-lg p-3 flex flex-col gap-1.5"
+      style={{
+        background: 'var(--color-surface-overlay)',
+        border: '1px solid var(--color-border)',
+        opacity: isOverride ? 0.6 : 1,
+      }}
+    >
+      {/* Header row */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+          {exerciseName}
+        </span>
+        <div className="flex items-center gap-2">
+          {isOverride && (
             <span
-              key={ex.id}
-              className="text-sm px-2 py-0.5 rounded-lg"
+              className="text-xs px-1.5 py-0.5 rounded"
               style={{
-                background: completed ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.1)',
-                color: completed ? 'var(--color-success)' : 'var(--color-warning)',
-                border: `1px solid ${completed ? 'rgba(34,197,94,0.3)' : 'rgba(245,158,11,0.3)'}`,
+                background: 'rgba(148,163,184,0.15)',
+                color: 'var(--color-text-muted)',
+                border: '1px solid rgba(148,163,184,0.2)',
               }}
             >
-              {ex.name} {completed ? '✓' : '✗'}
+              Override
             </span>
-          )
-        })}
+          )}
+          <span
+            className="text-xs font-medium"
+            style={{ color: log.completed ? 'var(--color-success)' : 'var(--color-warning)' }}
+          >
+            {log.completed ? '✓' : '✗'} Attempt {log.attemptNumber}
+          </span>
+        </div>
       </div>
+
+      {/* Prescribed sets */}
+      {log.prescribedSets.length > 0 && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs w-20 shrink-0" style={{ color: 'var(--color-text-muted)' }}>
+            Prescribed:
+          </span>
+          <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            {log.prescribedSets.join(' · ')}
+          </span>
+        </div>
+      )}
+
+      {/* Actual sets */}
+      {log.actualSets.length > 0 && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs w-20 shrink-0" style={{ color: 'var(--color-text-muted)' }}>
+            Actual:
+          </span>
+          <div className="flex gap-1 flex-wrap">
+            {log.actualSets.map((actual, i) => {
+              const prescribed = log.prescribedSets[i] ?? 0
+              const met = actual >= prescribed
+              return (
+                <span
+                  key={i}
+                  className="text-xs"
+                  style={{ color: met ? 'var(--color-success)' : 'var(--color-warning)' }}
+                >
+                  {actual}{i < log.actualSets.length - 1 ? ' ·' : ''}
+                </span>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Notes */}
+      {log.notes && log.notes.trim() && (
+        <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
+          Notes: {log.notes}
+        </p>
+      )}
     </div>
   )
 }

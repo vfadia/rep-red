@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import './index.css'
 import App from './App'
 import { seedDatabase } from './db'
@@ -11,21 +11,17 @@ import MetricsScreen from './screens/MetricsScreen'
 import CalendarScreen from './screens/CalendarScreen'
 import SettingsScreen from './screens/SettingsScreen'
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <App />,
-    children: [
-      { index: true, element: <WorkoutScreen /> },
-      { path: 'metrics', element: <MetricsScreen /> },
-      { path: 'calendar', element: <CalendarScreen /> },
-      { path: 'settings', element: <SettingsScreen /> },
-    ],
-  },
-])
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <HashRouter>
+      <Routes>
+        <Route path="/" element={<App />}>
+          <Route index element={<WorkoutScreen />} />
+          <Route path="metrics" element={<MetricsScreen />} />
+          <Route path="calendar" element={<CalendarScreen />} />
+          <Route path="settings" element={<SettingsScreen />} />
+        </Route>
+      </Routes>
+    </HashRouter>
   </StrictMode>,
 )
