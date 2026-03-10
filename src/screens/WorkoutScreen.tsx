@@ -39,7 +39,7 @@ export default function WorkoutScreen() {
 
   const exerciseLogs = logsForDate.filter(l => l.exerciseId === activeExercise?.id)
 
-  // When switching tabs or date, initialize logging state
+  // When switching tabs, date, or exercise list changes, initialize logging state
   useEffect(() => {
     if (!activeExercise) return
     const hasExistingLog = logsForDate.some(l => l.exerciseId === activeExercise.id)
@@ -51,7 +51,7 @@ export default function WorkoutScreen() {
     }
     setShowNotes(false)
     setNotes('')
-  }, [activeIdx, selectedDate]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeIdx, selectedDate, activeExercise?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleCompleteAsPrescribed() {
     setSets(prev => prev.map(s => ({ ...s, actual: s.prescribed, done: true })))

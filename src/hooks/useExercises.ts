@@ -7,7 +7,7 @@ export function useActiveExercises(): Exercise[] {
   const [exercises, setExercises] = useState<Exercise[]>([])
   useEffect(() => {
     const sub = liveQuery(() =>
-      db.exercises.where('isActive').equals(1).sortBy('sortOrder')
+      db.exercises.orderBy('sortOrder').filter(e => e.isActive).toArray()
     ).subscribe({ next: setExercises, error: console.error })
     return () => sub.unsubscribe()
   }, [])
